@@ -199,11 +199,38 @@ Public Sub ReadData(ByVal fileName As String, ByRef result() As Byte)
     '
     With m_fileHeaders(m_fileIndex(fileName))
         If UBound(.uncompressedData) - LBound(.uncompressedData) + 1 = 0 Then
-            Inflate m_bytes, .dataStart, .uncompressedData, .uncompressedSize
+            Select Case .compressionMethod
+                Case 0
+                    .uncompressedData = MidBytes(m_bytes, .dataStart, .CompressedSize)
+                    If UBound(.uncompressedData) - LBound(.uncompressedData) + 1 <> .uncompressedSize Then
+                        Err.Raise 5, TypeName(Me) & ".ReadData", "Size mismatch after copying stored data for file: " & .fileName
+                    End If
+                Case 8
+                    Inflate m_bytes, .dataStart, .uncompressedData, .uncompressedSize
+                Case Else
+                    Err.Raise 5, TypeName(Me) & ".ReadData", "Unsupported compression method: " & .compressionMethod
+                    Exit Sub
+            End Select
+          
             If Crc32(.uncompressedData) <> .crc32uncompressed Then
-                Err.Raise 5, TypeName(Me) & ".ReadData", "Corrupted data"
+              Err.Raise 5, TypeName(Me) & ".ReadData", "Corrupted data for file: " & .fileName
             End If
         End If
         result = .uncompressedData
     End With
 End Sub
+    
+'*******************************************************************************
+'Returns a slice of a byte array
+'*******************************************************************************
+Private Function MidBytes(ByRef data() As Byte, ByVal dataStart As Long, ByVal dataLength As Long) As Byte()
+    If dataStart < LBound(data) Or dataStart > UBound(data) Then Exit Function
+    If dataStart + dataLength - 1 > UBound(data) Then
+        dataLength = UBound(data) - dataStart + 1
+    End If
+    If dataLength <= 0 Then Exit Function
+    Dim result() As Byte
+    ReDim result(0 To dataLength - 1)
+    MemCopy VarPtr(result(0)), VarPtr(data(dataStart)), dataLength
+    MidBytes = result
+End Function
