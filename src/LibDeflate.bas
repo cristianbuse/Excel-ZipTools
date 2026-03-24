@@ -369,7 +369,7 @@ Private Sub CopyFixedAlphabets(ByRef outAlphabets As Alphabets)
     If fixedAlphabets.distTree.minLenUsed = 0 Then
         Dim i As Long
         With fixedAlphabets.litLTree.lengths(8)
-            ReDim .codes(0 To 199)
+            ReDim .codes(0 To 255) '0 to 199 but see issue #2
             For i = 0 To 143
                 .codes(i + 48) = i + 1 'Non-zero - used as Bool when decoding
             Next i
@@ -384,7 +384,7 @@ Private Sub CopyFixedAlphabets(ByRef outAlphabets As Alphabets)
             Next i
         End With
         With fixedAlphabets.litLTree.lengths(7)
-            ReDim .codes(0 To 23)
+            ReDim .codes(0 To 255) '0 to 23 but see issue #2
             For i = 256 To 279
                 .codes(i - 256) = i + 1
             Next i
