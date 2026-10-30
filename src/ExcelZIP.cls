@@ -203,6 +203,7 @@ Public Sub ReadData(ByVal fileName As String, ByRef result() As Byte)
                 Case 0
                     .uncompressedData = MidBytes(m_bytes, .dataStart, .CompressedSize)
                     If UBound(.uncompressedData) - LBound(.uncompressedData) + 1 <> .uncompressedSize Then
+                        Erase .uncompressedData
                         Err.Raise 5, TypeName(Me) & ".ReadData", "Size mismatch after copying stored data for file: " & .fileName
                     End If
                 Case 8
@@ -211,9 +212,10 @@ Public Sub ReadData(ByVal fileName As String, ByRef result() As Byte)
                     Err.Raise 5, TypeName(Me) & ".ReadData", "Unsupported compression method: " & .compressionMethod
                     Exit Sub
             End Select
-          
+            '
             If Crc32(.uncompressedData) <> .crc32uncompressed Then
-              Err.Raise 5, TypeName(Me) & ".ReadData", "Corrupted data for file: " & .fileName
+                Erase .uncompressedData
+                Err.Raise 5, TypeName(Me) & ".ReadData", "Corrupted data for file: " & .fileName
             End If
         End If
         result = .uncompressedData
