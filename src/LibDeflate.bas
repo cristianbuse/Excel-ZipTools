@@ -151,7 +151,13 @@ Public Sub Inflate(ByRef bytes() As Byte _
             Loop
         End If
     Loop Until isFinalBlock
-    If outPos < outSize Then ReDim Preserve outBytes(0 To outPos - 1)
+    If outPos < outSize Then
+        If outPos > 0 Then
+            ReDim Preserve outBytes(0 To outPos - 1)
+        Else
+            outBytes = EmptyArray(1, vbByte)
+        End If
+    End If
 Exit Sub
 Fail:
     Err.Raise Err.Number, "Inflate", Err.Description
